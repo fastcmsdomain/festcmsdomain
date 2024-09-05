@@ -1,4 +1,4 @@
-export default function decorate(block) {s
+export default function decorate(block) {
     const wrapper = block.closest('.accordion-slider-wrapper');
     const items = [...block.children];
     const slider = document.createElement('div');
