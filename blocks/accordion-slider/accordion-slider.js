@@ -1,25 +1,53 @@
-export default function decorate(block) {
-  const accordionItems = block.querySelectorAll('.accordion-item');
+export default function decorate(block) {s
+    const wrapper = block.closest('.accordion-slider-wrapper');
+    const items = [...block.children];
+    const slider = document.createElement('div');
+    slider.className = 'accordion-slider-container';
 
-  accordionItems.forEach((item) => {
-    const header = item.querySelector('.accordion-header');
-    const content = item.querySelector('.accordion-content');
-    const icon = item.querySelector('.accordion-icon');
+    items.forEach((item, index) => {
+        const [title, content] = item.children;
+        const slide = document.createElement('div');
+        slide.className = 'accordion-slide';
+        slide.dataset.index = index;
 
-    header.addEventListener('click', () => {
-      const isActive = item.classList.contains('active');
+        const titleElement = document.createElement('div');
+        titleElement.className = 'accordion-title';
+        titleElement.innerHTML = title.innerHTML;
 
-      // Close all accordion items
-      accordionItems.forEach((otherItem) => {
-        otherItem.classList.remove('active');
-        otherItem.querySelector('.accordion-icon').textContent = '+';
-      });
+        const contentElement = document.createElement('div');
+        contentElement.className = 'accordion-content';
+        contentElement.innerHTML = content.innerHTML;
 
-      // Toggle the clicked item
-      if (!isActive) {
-        item.classList.add('active');
-        icon.textContent = '×';
-      }
+        const imagePlaceholder = document.createElement('div');
+        imagePlaceholder.className = 'accordion-image-placeholder';
+
+        slide.appendChild(titleElement);
+        slide.appendChild(contentElement);
+        slide.appendChild(imagePlaceholder);
+        slider.appendChild(slide);
+
+        titleElement.addEventListener('click', () => {
+            const activeSlide = slider.querySelector('.accordion-slide.active');
+            if (activeSlide && activeSlide !== slide) {
+                activeSlide.classList.remove('active');
+            }
+            slide.classList.toggle('active');
+            updateSliderPosition();
+        });
     });
-  });
+
+    wrapper.innerHTML = '';
+    wrapper.appendChild(slider);
+
+    function updateSliderPosition() {
+        const activeSlide = slider.querySelector('.accordion-slide.active');
+        if (activeSlide) {
+            const slideIndex = parseInt(activeSlide.dataset.index, 10);
+            slider.style.transform = `translateX(-${slideIndex * 100}%)`;
+        }
+    }
+
+    // Open the first slide by default
+    slider.querySelector('.accordion-slide').classList.add('active');
+    updateSliderPosition();
 }
