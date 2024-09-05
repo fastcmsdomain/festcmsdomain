@@ -5,18 +5,25 @@ export default function decorate(block) {
     slider.className = 'accordion-slider-container';
 
     items.forEach((item, index) => {
-        const [title, content] = item.children;
         const slide = document.createElement('div');
         slide.className = 'accordion-slide';
         slide.dataset.index = index;
 
         const titleElement = document.createElement('div');
         titleElement.className = 'accordion-title';
-        titleElement.innerHTML = title.innerHTML;
-
         const contentElement = document.createElement('div');
         contentElement.className = 'accordion-content';
-        contentElement.innerHTML = content.innerHTML;
+
+        // Check if item has children before accessing them
+        if (item.children.length > 0) {
+            titleElement.textContent = item.children[0].textContent || `Slide ${index + 1}`;
+            
+            if (item.children.length > 1) {
+                contentElement.innerHTML = item.children[1].innerHTML || '';
+            }
+        } else {
+            titleElement.textContent = `Slide ${index + 1}`;
+        }
 
         const imagePlaceholder = document.createElement('div');
         imagePlaceholder.className = 'accordion-image-placeholder';
@@ -36,6 +43,7 @@ export default function decorate(block) {
         });
     });
 
+    // Clear the wrapper and append the new slider
     wrapper.innerHTML = '';
     wrapper.appendChild(slider);
 
@@ -48,6 +56,9 @@ export default function decorate(block) {
     }
 
     // Open the first slide by default
-    slider.querySelector('.accordion-slide').classList.add('active');
-    updateSliderPosition();
+    const firstSlide = slider.querySelector('.accordion-slide');
+    if (firstSlide) {
+        firstSlide.classList.add('active');
+        updateSliderPosition();
+    }
 }
