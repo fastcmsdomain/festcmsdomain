@@ -1,47 +1,81 @@
 .imagecycle {
-  --dot-size: 12px;
-  --dot-spacing: 8px;
-  --dot-color: #666;
-  --dot-color-active: #000;
+  --carousel-height: 400px;
+  --image-width: 60%;
+  --side-image-scale: 0.7;
+  --rotation-angle: -60deg;
+  --transition-duration: 0.5s;
+  --arrow-size: 40px;
+  --arrow-color: #333;
+  --arrow-hover-color: #000;
 }
 
 .imagecycle-wrapper {
   position: relative;
-  background-color: #e6f3ff;
-  padding: 20px;
-  border-radius: 8px;
+  height: var(--carousel-height);
+  perspective: 1000px;
+  transform-style: preserve-3d;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .imagecycle-image {
-  display: none;
-  text-align: center;
+  position: absolute;
+  width: var(--image-width);
+  height: 100%;
+  transition: all var(--transition-duration) ease-in-out;
+  opacity: 0;
+  transform: translateX(0) scale(0);
 }
 
 .imagecycle-image img {
-  max-width: 100%;
-  height: auto;
-  display: block;
-  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.2);
 }
 
-.imagecycle-nav {
-  display: flex;
-  justify-content: center;
-  gap: var(--dot-spacing);
-  margin-top: 20px;
+/* Active image (center) */
+.imagecycle-image.active {
+  opacity: 1;
+  transform: translateX(0) scale(1);
+  z-index: 2;
 }
 
-.imagecycle-dot {
-  width: var(--dot-size);
-  height: var(--dot-size);
-  border-radius: 50%;
-  background-color: var(--dot-color);
+/* Previous image (left side) */
+.imagecycle-image.prev {
+  opacity: 0.7;
+  transform: translateX(-50%) scale(var(--side-image-scale)) rotateY(var(--rotation-angle));
+  z-index: 1;
+}
+
+/* Next image (right side) */
+.imagecycle-image.next {
+  opacity: 0.7;
+  transform: translateX(50%) scale(var(--side-image-scale)) rotateY(calc(var(--rotation-angle) * -1));
+  z-index: 1;
+}
+
+/* Navigation arrows */
+.imagecycle-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: var(--arrow-size);
+  height: var(--arrow-size);
+  background: white;
   border: none;
-  padding: 0;
+  border-radius: 50%;
   cursor: pointer;
-  transition: background-color 0.3s ease;
+  font-size: calc(var(--arrow-size) * 0.6);
+  color: var(--arrow-color);
+  z-index: 3;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
+.imagecycle-arrow:hover {
 .imagecycle-dot:hover {
   background-color: var(--dot-color-active);
 }

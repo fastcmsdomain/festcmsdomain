@@ -1,45 +1,61 @@
 // Configuration object for the imagecycle block
 const IMAGECYCLE_CONFIG = {
   ROTATION_INTERVAL: 5000, // 5 seconds between rotations
-  BACKGROUND_COLOR: '#e6f3ff', // Light blue background
+  ROTATION_ANGLE: -60, // Angle for side images
   KEYS: {
     LEFT: 'ArrowLeft',
     RIGHT: 'ArrowRight'
+  },
+  CLASSES: {
+    ACTIVE: 'active',
+    PREV: 'prev',
+    NEXT: 'next'
   }
 };
 
 /**
- * Creates navigation dots for the image carousel
- * @param {number} count - Number of images
- * @param {number} active - Active image index
- * @returns {HTMLElement} Navigation container
+ * Creates navigation arrows for the carousel
+ * @returns {Object} Object containing left and right arrow elements
  */
-function createNavigation(count, active) {
-  const nav = document.createElement('div');
-  nav.className = 'imagecycle-nav';
-  
-  for (let i = 0; i < count; i += 1) {
-    const dot = document.createElement('button');
-    dot.className = 'imagecycle-dot';
-    dot.setAttribute('aria-label', `Go to image ${i + 1}`);
-    if (i === active) {
-      dot.classList.add('active');
-    }
-    nav.appendChild(dot);
-  }
-  
-  return nav;
+function createArrows() {
+  const leftArrow = document.createElement('button');
+  leftArrow.className = 'imagecycle-arrow imagecycle-arrow-left';
+  leftArrow.setAttribute('aria-label', 'Previous image');
+  leftArrow.innerHTML = '←';
+
+  const rightArrow = document.createElement('button');
+  rightArrow.className = 'imagecycle-arrow imagecycle-arrow-right';
+  rightArrow.setAttribute('aria-label', 'Next image');
+  rightArrow.innerHTML = '→';
+
+  return { leftArrow, rightArrow };
 }
 
 /**
- * Updates the active state of navigation dots
- * @param {HTMLElement} nav - Navigation container
- * @param {number} activeIndex - Current active image index
+ * Updates the carousel state
+ * @param {HTMLElement} wrapper - Carousel wrapper element
+ * @param {number} currentIndex - Current active image index
+ * @param {number} totalImages - Total number of images
  */
-function updateNavigation(nav, activeIndex) {
-  const dots = nav.querySelectorAll('.imagecycle-dot');
-  dots.forEach((dot, index) => {
-    dot.classList.toggle('active', index === activeIndex);
+function updateCarousel(wrapper, currentIndex, totalImages) {
+  const images = wrapper.querySelectorAll('.imagecycle-image');
+  const prevIndex = (currentIndex - 1 + totalImages) % totalImages;
+  const nextIndex = (currentIndex + 1) % totalImages;
+
+  images.forEach((img, index) => {
+    img.classList.remove(
+      IMAGECYCLE_CONFIG.CLASSES.ACTIVE,
+      IMAGECYCLE_CONFIG.CLASSES.PREV,
+      IMAGECYCLE_CONFIG.CLASSES.NEXT
+    );
+
+    if (index === currentIndex) {
+      img.classList.add(IMAGECYCLE_CONFIG.CLASSES.ACTIVE);
+    } else if (index === prevIndex) {
+      img.classList.add(IMAGECYCLE_CONFIG.CLASSES.PREV);
+    } else if (index === nextIndex) {
+      img.classList.add(IMAGECYCLE_CONFIG.CLASSES.NEXT);
+    }
   });
 }
 
@@ -64,89 +80,57 @@ export default async function decorate(block) {
   // Clear original content
   block.textContent = '';
   
-  // Randomize image order
-  images.sort(() => Math.random() - 0.5);
-  
   // Add images to wrapper
-  images.forEach((img, index) => {
+  images.forEach((img) => {
     const imgWrapper = document.createElement('div');
     imgWrapper.className = 'imagecycle-image';
-    imgWrapper.style.display = index === 0 ? 'block' : 'none';
     imgWrapper.appendChild(img);
     wrapper.appendChild(imgWrapper);
   });
   
-  // Add navigation
-  const nav = createNavigation(images.length, 0);
+  // Create and add navigation arrows
+  const { leftArrow, rightArrow } = createArrows();
   
   // Add elements to block
+  block.appendChild(leftArrow);
   block.appendChild(wrapper);
-  block.appendChild(nav);
+  block.appendChild(rightArrow);
   
   let currentIndex = 0;
-  let rotationInterval;
+  
+  // Initialize carousel state
+  updateCarousel(wrapper, currentIndex, images.length);
   
   /**
-   * Shows the image at the specified index
-   * @param {number} index - Index of image to show
+   * Rotates to the specified index
+   * @param {number} newIndex - Target index to rotate to
    */
-  function showImage(index) {
-    const imageWrappers = wrapper.querySelectorAll('.imagecycle-image');
-    imageWrappers.forEach((img, i) => {
-      img.style.display = i === index ? 'block' : 'none';
-    });
-    updateNavigation(nav, index);
-    currentIndex = index;
+  function rotateTo(newIndex) {
+    currentIndex = newIndex;
+    updateCarousel(wrapper, currentIndex, images.length);
   }
   
-  /**
-   * Starts the rotation interval
-   */
-  function startRotation() {
-    rotationInterval = setInterval(() => {
-      const nextIndex = (currentIndex + 1) % images.length;
-      showImage(nextIndex);
-    }, IMAGECYCLE_CONFIG.ROTATION_INTERVAL);
-  }
+  // Event listeners for arrows
+  leftArrow.addEventListener('click', () => {
+    const newIndex = (currentIndex - 1 + images.length) % images.length;
+    rotateTo(newIndex);
+  });
   
-  /**
-   * Stops the rotation interval
-   */
-  function stopRotation() {
-    clearInterval(rotationInterval);
-  }
-  
-  // Event listeners
-  wrapper.addEventListener('mouseenter', stopRotation);
-  wrapper.addEventListener('mouseleave', () => {
-    showImage((currentIndex + 1) % images.length);
-    startRotation();
+  rightArrow.addEventListener('click', () => {
+    const newIndex = (currentIndex + 1) % images.length;
+    rotateTo(newIndex);
   });
   
   // Keyboard navigation
   document.addEventListener('keydown', (e) => {
     if (block.contains(document.activeElement)) {
       if (e.key === IMAGECYCLE_CONFIG.KEYS.LEFT) {
-        const prevIndex = (currentIndex - 1 + images.length) % images.length;
-        showImage(prevIndex);
-        stopRotation();
+        const newIndex = (currentIndex - 1 + images.length) % images.length;
+        rotateTo(newIndex);
       } else if (e.key === IMAGECYCLE_CONFIG.KEYS.RIGHT) {
-        const nextIndex = (currentIndex + 1) % images.length;
-        showImage(nextIndex);
-        stopRotation();
+        const newIndex = (currentIndex + 1) % images.length;
+        rotateTo(newIndex);
       }
     }
   });
-  
-  // Navigation dot clicks
-  nav.addEventListener('click', (e) => {
-    if (e.target.classList.contains('imagecycle-dot')) {
-      const index = Array.from(nav.children).indexOf(e.target);
-      showImage(index);
-      stopRotation();
-    }
-  });
-  
-  // Start rotation
-  startRotation();
 } 
