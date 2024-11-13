@@ -1,0 +1,57 @@
+.imagecycle {
+  --dot-size: 12px;
+  --dot-spacing: 8px;
+  --dot-color: #666;
+  --dot-color-active: #000;
+}
+
+.imagecycle-wrapper {
+  position: relative;
+  background-color: #e6f3ff;
+  padding: 20px;
+  border-radius: 8px;
+}
+
+.imagecycle-image {
+  display: none;
+  text-align: center;
+}
+
+.imagecycle-image img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0 auto;
+}
+
+.imagecycle-nav {
+  display: flex;
+  justify-content: center;
+  gap: var(--dot-spacing);
+  margin-top: 20px;
+}
+
+.imagecycle-dot {
+  width: var(--dot-size);
+  height: var(--dot-size);
+  border-radius: 50%;
+  background-color: var(--dot-color);
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.imagecycle-dot:hover {
+  background-color: var(--dot-color-active);
+}
+
+.imagecycle-dot.active {
+  background-color: var(--dot-color-active);
+}
+
+/* Accessibility */
+.imagecycle-dot:focus-visible {
+  outline: 2px solid #000;
+  outline-offset: 2px;
+} 
